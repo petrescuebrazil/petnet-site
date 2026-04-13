@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PetNet | A rede que ajuda pets de verdade</title>
+  <meta name="description" content="PetNet é o app para divulgar adoções, apoiar vaquinhas, compartilhar histórias e conectar pessoas que querem ajudar pets de verdade." />
+  <link rel="icon" href="logo.png" />
+  <style>
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    :root{
+      --green:#14d89a;
+      --green2:#00b67a;
+      --blue:#41b6ff;
+      --yellow:#ffd65a;
+      --pink:#ff78b6;
+      --navy:#08111f;
+      --dark:#0f172a;
+      --text:#0f172a;
+      --muted:#526177;
+      --border:rgba(255,255,255,.22);
+      --white:#ffffff;
+      --apk-link:"https://github.com/petrescuebrazil/petnet-site/releases/download/v1.0/app-release.apk";
+    }
+    body{
+      margin:0;
+      font-family:Arial,Helvetica,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(20,216,154,.20), transparent 22%),
+        radial-gradient(circle at 90% 15%, rgba(65,182,255,.22), transparent 24%),
+        radial-gradient(circle at 50% 80%, rgba(255,120,182,.14), transparent 22%),
+        linear-gradient(180deg,#f4fffb 0%,#f7fbff 45%,#ffffff 100%);
+      overflow-x:hidden;
+      line-height:1.6;
+    }
+    img{max-width:100%;display:block}
+    a{text-decoration:none}
+    .container{max-width:1200px;margin:auto;padding:0 20px;position:relative;z-index:3}
+
+    .bg-lines,.bg-dots,.bg-orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+    .bg-lines::before,.bg-lines::after{
+      content:"";position:absolute;width:160vw;height:160vw;border-radius:40%;border:1px solid rgba(20,216,154,.12);left:-30vw;top:-40vw;animation:spinSlow 28s linear infinite;
+    }
+    .bg-lines::after{width:120vw;height:120vw;left:10vw;top:-20vw;border-color:rgba(65,182,255,.12);animation-direction:reverse;animation-duration:34s}
+    .bg-dots{
+      background-image:radial-gradient(rgba(8,17,31,.08) 1px, transparent 1px);
+      background-size:22px 22px;
+      opacity:.35;
+      mask-image:linear-gradient(180deg, rgba(0,0,0,.65), transparent 90%);
+    }
+    .orb{position:absolute;border-radius:999px;filter:blur(26px);opacity:.55;animation:orbFloat 9s ease-in-out infinite}
+    .orb.one{width:190px;height:190px;background:rgba(20,216,154,.35);top:80px;left:-40px}
+    .orb.two{width:260px;height:260px;background:rgba(65,182,255,.30);top:200px;right:-70px;animation-delay:1.5s}
+    .orb.three{width:180px;height:180px;background:rgba(255,120,182,.22);bottom:120px;left:14%;animation-delay:3s}
+    .orb.four{width:220px;height:220px;background:rgba(255,214,90,.22);bottom:60px;right:10%;animation-delay:4.5s}
+
+    .topbar{
+      position:sticky;top:0;z-index:60;
+      background:rgba(255,255,255,.70);
+      backdrop-filter:blur(16px);
+      border-bottom:1px solid rgba(255,255,255,.55);
+      box-shadow:0 10px 30px rgba(8,17,31,.04);
+    }
+    .header{display:flex;justify-content:space-between;align-items:center;padding:14px 0;gap:16px}
+    .logo{display:flex;align-items:center;gap:14px}
+    .logo img{
+      width:68px;height:68px;border-radius:22px;
+      box-shadow:0 16px 36px rgba(8,17,31,.12);
+      animation:logoDance 4.2s ease-in-out infinite;
+    }
+    .logo-text strong{display:block;font-size:22px}
+    .logo-text span{display:block;font-size:13px;color:#64748b}
+    .nav{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+    .nav a{color:#203046;font-weight:700;font-size:14px;position:relative}
+    .nav a:not(.btn)::after{content:"";position:absolute;left:0;bottom:-6px;width:0;height:3px;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--blue));transition:.25s}
+    .nav a:not(.btn):hover::after{width:100%}
+
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:10px;
+      background:linear-gradient(135deg,var(--green),var(--green2));
+      color:#fff;padding:15px 26px;border-radius:18px;font-weight:800;
+      box-shadow:0 16px 34px rgba(0,182,122,.28);
+      transition:.25s ease;position:relative;overflow:hidden;
+      border:none;cursor:pointer;
+    }
+    .btn:hover{transform:translateY(-3px) scale(1.02)}
+    .btn::before{
+      content:"";position:absolute;top:0;left:-120%;width:65%;height:100%;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);
+      transform:skewX(-18deg);transition:.6s;
+    }
+    .btn:hover::before{left:130%}
+    .btn-dark{background:linear-gradient(135deg,#172135,#08111f);box-shadow:0 16px 34px rgba(8,17,31,.22)}
+    .btn-light{background:rgba(255,255,255,.78);color:#08111f;border:1px solid rgba(8,17,31,.08);box-shadow:0 10px 24px rgba(8,17,31,.06)}
+    .btn-outline{background:transparent;color:#08111f;border:2px solid rgba(8,17,31,.12);box-shadow:none}
+
+    .floating-cta{
+      position:fixed;right:18px;bottom:18px;z-index:80;
+      display:flex;align-items:center;gap:10px;
+      padding:14px 18px;border-radius:999px;
+      background:linear-gradient(135deg,var(--green),var(--blue));
+      color:#08111f;font-weight:900;
+      box-shadow:0 18px 40px rgba(0,182,122,.28);
+      animation:floatButton 3s ease-in-out infinite;
+    }
+
+    .hero{padding:84px 0 60px;position:relative;overflow:hidden}
+    .hero-wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:center}
+    .hero-badge{
+      display:inline-flex;align-items:center;gap:10px;
+      background:rgba(255,255,255,.78);backdrop-filter:blur(12px);
+      border:1px solid rgba(20,216,154,.28);border-radius:999px;
+      padding:10px 16px;font-weight:800;font-size:13px;color:#0b8e65;
+      box-shadow:0 10px 25px rgba(8,17,31,.05);
+      animation:badgePulse 3.5s ease-in-out infinite;
+    }
+    .hero h1{
+      font-size:64px;line-height:1;margin:18px 0 18px;
+      letter-spacing:-1.8px;
+      max-width:760px;
+    }
+    .gradient-text{
+      background:linear-gradient(90deg,var(--green2),var(--blue),var(--pink));
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+      background-size:200% 200%;animation:gradientShift 5s ease infinite;
+    }
+    .hero p{font-size:21px;color:var(--muted);max-width:710px;margin:0 0 28px}
+    .hero-actions{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:28px}
+    .hero-points{display:flex;flex-wrap:wrap;gap:12px}
+    .hero-points span{
+      background:rgba(255,255,255,.82);backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,.55);border-radius:999px;
+      padding:11px 15px;font-size:14px;color:#1f2d3f;font-weight:800;
+      box-shadow:0 10px 24px rgba(8,17,31,.05);
+      animation:popIn .8s ease both;
+    }
+
+    .phone-stack{position:relative;height:640px}
+    .phone{
+      position:absolute;width:300px;max-width:82%;
+      background:linear-gradient(180deg,#101b2d,#08111f);
+      border-radius:38px;padding:12px;box-shadow:0 34px 80px rgba(8,17,31,.24);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .phone::before{content:"";display:block;width:38%;height:18px;background:#050912;border-radius:0 0 14px 14px;margin:0 auto 10px}
+    .phone-screen{
+      border-radius:30px;overflow:hidden;position:relative;
+      min-height:560px;background:
+      linear-gradient(180deg,rgba(20,216,154,.22),transparent 38%),
+      linear-gradient(180deg,#18253c,#10192b 55%,#0d1626 100%);
+      color:#fff;padding:22px;
+    }
+    .phone.one{right:20px;top:10px;transform:rotate(6deg);animation:phoneFloat1 5.2s ease-in-out infinite}
+    .phone.two{left:10px;bottom:0;transform:rotate(-7deg);animation:phoneFloat2 5.8s ease-in-out infinite}
+    .mini-card{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.10);border-radius:22px;padding:16px;margin-bottom:14px;backdrop-filter:blur(10px)}
+    .mini-card h3,.mini-card h4{margin:0}
+    .mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .mini-stat{background:rgba(255,255,255,.08);border-radius:18px;padding:15px}
+    .mini-stat strong{display:block;font-size:22px}
+    .bar{height:8px;border-radius:999px;background:rgba(255,255,255,.10);overflow:hidden;margin-top:10px}
+    .bar span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--blue));animation:barGrow 3.8s ease-in-out infinite}
+    .bubble{position:absolute;border-radius:999px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.08)}
+    .bubble.a{width:70px;height:70px;right:12px;top:70px;animation:orbFloat 4.8s ease-in-out infinite}
+    .bubble.b{width:34px;height:34px;left:18px;bottom:110px;animation:orbFloat 5.5s ease-in-out infinite reverse}
+
+    .section{padding:84px 0;position:relative}
+    .section-head{max-width:790px;margin-bottom:30px}
+    .section-tag{
+      display:inline-block;font-size:13px;font-weight:900;letter-spacing:.1em;
+      text-transform:uppercase;color:#0b8e65;margin-bottom:12px;
+    }
+    .section h2{font-size:46px;line-height:1.05;margin:0 0 14px;letter-spacing:-1px}
+    .section p.lead{font-size:19px;color:var(--muted);margin:0}
+
+    .impact-strip{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:18px;
+      margin-top:22px;
+    }
+    .impact-box{
+      background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(255,255,255,.74));
+      border:1px solid rgba(255,255,255,.75);
+      border-radius:28px;padding:24px;text-align:center;
+      box-shadow:0 18px 36px rgba(8,17,31,.06);
+    }
+    .impact-box strong{display:block;font-size:34px;line-height:1;margin-bottom:8px;color:#08111f}
+    .impact-box span{font-size:14px;font-weight:700;color:var(--muted)}
+
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+    .card{
+      background:rgba(255,255,255,.76);backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,.75);border-radius:28px;padding:28px;
+      box-shadow:0 20px 40px rgba(8,17,31,.06);
+      transition:.28s ease;position:relative;overflow:hidden;
+    }
+    .card::before{
+      content:"";position:absolute;inset:0 auto auto 0;width:100%;height:5px;
+      background:linear-gradient(90deg,var(--green),var(--blue),var(--pink));
+      transform:scaleX(0);transform-origin:left;transition:.25s;
+    }
+    .card:hover{transform:translateY(-10px) scale(1.02) rotate(-.2deg);box-shadow:0 28px 52px rgba(8,17,31,.11)}
+    .card:hover::before{transform:scaleX(1)}
+    .card-icon{font-size:38px;margin-bottom:14px;animation:badgePulse 3.8s ease-in-out infinite}
+    .card h3{margin:0 0 10px;font-size:23px}
+    .card p{margin:0;color:var(--muted)}
+
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .step{
+      background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(255,255,255,.74));
+      border:1px solid rgba(255,255,255,.75);border-radius:28px;padding:26px;
+      box-shadow:0 18px 36px rgba(8,17,31,.06);transition:.28s;
+    }
+    .step:hover{transform:translateY(-9px)}
+    .step-number{
+      width:52px;height:52px;border-radius:16px;
+      background:linear-gradient(135deg,#172135,#08111f);color:#fff;
+      display:flex;align-items:center;justify-content:center;font-weight:900;
+      margin-bottom:15px;box-shadow:0 14px 24px rgba(8,17,31,.16)
+    }
+    .step h3{margin:0 0 10px;font-size:23px}
+    .step p{margin:0;color:var(--muted)}
+
+    .screens{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+    .screen-card{
+      background:rgba(255,255,255,.82);backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,.8);border-radius:30px;padding:20px;
+      box-shadow:0 20px 40px rgba(8,17,31,.06);transition:.3s ease;
+    }
+    .screen-card:hover{transform:translateY(-10px) scale(1.015)}
+    .screen-frame{
+      background:linear-gradient(180deg,#dff7ff,#d8f6eb 40%,#e8edff);
+      border-radius:32px;padding:10px;max-width:275px;margin:0 auto 16px;
+      position:relative;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.7);
+    }
+    .screen-frame::before{
+      content:"";position:absolute;top:0;left:-120%;width:58%;height:100%;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);
+      transform:skewX(-18deg);animation:screenShine 3.5s ease-in-out infinite;
+    }
+    .screen-frame img{width:100%;aspect-ratio:9/19.5;object-fit:cover;border-radius:22px;background:#cbd5e1}
+    .screen-card h3{margin:0 0 8px;font-size:23px;text-align:center}
+    .screen-card p{margin:0;color:var(--muted);text-align:center}
+    .screen-note{
+      margin-top:20px;font-size:14px;color:#506174;
+      background:rgba(255,255,255,.75);backdrop-filter:blur(10px);
+      border:1px dashed rgba(8,17,31,.16);border-radius:18px;padding:15px;
+    }
+
+    .audience-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+    .audience-card{
+      background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.76));
+      border:1px solid rgba(255,255,255,.8);
+      border-radius:28px;padding:24px;
+      box-shadow:0 18px 36px rgba(8,17,31,.06);
+      transition:.28s;
+    }
+    .audience-card:hover{transform:translateY(-8px)}
+    .audience-card h3{margin:0 0 10px;font-size:22px}
+    .audience-card p{margin:0;color:var(--muted)}
+
+    .difference-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+    .difference-box{
+      background:rgba(255,255,255,.82);backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,.75);border-radius:28px;padding:28px;
+      box-shadow:0 18px 36px rgba(8,17,31,.05);
+    }
+    .difference-box h3{margin-top:0;font-size:26px}
+    .difference-box ul{padding-left:18px;margin:0}
+    .difference-box li{margin-bottom:10px;color:var(--muted)}
+
+    .story-banner{
+      background:linear-gradient(135deg,#08111f,#10233f 55%,#0b8e65);
+      color:#fff;border-radius:34px;padding:38px;
+      box-shadow:0 28px 70px rgba(8,17,31,.18);
+    }
+    .story-banner h2{margin:0 0 12px;color:#fff}
+    .story-banner p{margin:0;color:rgba(255,255,255,.82);font-size:18px;max-width:900px}
+
+    .about{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+    .about-box{
+      background:rgba(255,255,255,.8);backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,.75);border-radius:28px;padding:28px;
+      box-shadow:0 18px 36px rgba(8,17,31,.05);transition:.28s;
+    }
+    .about-box:hover{transform:translateY(-8px)}
+    .about-box h3{margin-top:0;font-size:26px}
+    .about-box p,.about-box li{color:var(--muted)}
+
+    .faq-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .faq-card{
+      background:rgba(255,255,255,.84);backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,.8);border-radius:26px;padding:24px;
+      box-shadow:0 16px 32px rgba(8,17,31,.05);
+    }
+    .faq-card h3{margin:0 0 10px;font-size:21px}
+    .faq-card p{margin:0;color:var(--muted)}
+
+    .download-wrap{
+      background:linear-gradient(135deg,#0f172a,#08111f 55%,#10233f);
+      color:#fff;border-radius:40px;padding:52px;
+      display:grid;grid-template-columns:1.05fr .95fr;gap:26px;align-items:center;
+      box-shadow:0 34px 80px rgba(8,17,31,.22);position:relative;overflow:hidden;
+    }
+    .download-wrap::before{
+      content:"";position:absolute;right:-90px;top:-90px;width:240px;height:240px;
+      border-radius:999px;background:rgba(20,216,154,.15);filter:blur(18px);animation:orbFloat 8s ease-in-out infinite;
+    }
+    .download-wrap::after{
+      content:"";position:absolute;left:-60px;bottom:-60px;width:170px;height:170px;
+      border-radius:999px;background:rgba(65,182,255,.14);filter:blur(18px);animation:orbFloat 9s ease-in-out infinite reverse;
+    }
+    .download-wrap h2{margin:0 0 14px;font-size:48px;line-height:1.02;letter-spacing:-1px}
+    .download-wrap p{margin:0;color:rgba(255,255,255,.78);font-size:19px}
+    .download-card{
+      background:rgba(255,255,255,.98);color:#08111f;border-radius:28px;padding:24px;
+      box-shadow:0 20px 40px rgba(8,17,31,.14);position:relative;z-index:2;
+    }
+    .download-card-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+    .download-card-top img{width:62px;height:62px;border-radius:18px;animation:logoDance 4s ease-in-out infinite}
+    .download-link{
+      word-break:break-all;font-size:13px;color:#64748b;background:#f8fafc;
+      border:1px solid #e2e8f0;border-radius:16px;padding:12px;margin-top:14px
+    }
+
+    .final-cta{
+      text-align:center;
+      background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(255,255,255,.68));
+      backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,.8);
+      border-radius:34px;padding:42px;
+      box-shadow:0 20px 40px rgba(8,17,31,.06);
+    }
+    .final-cta h2{margin:0 0 12px;font-size:42px}
+    .final-cta p{margin:0 auto 24px;max-width:760px;font-size:19px;color:var(--muted)}
+
+    .footer{
+      border-top:1px solid rgba(255,255,255,.6);margin-top:74px;
+      background:rgba(255,255,255,.72);backdrop-filter:blur(12px)
+    }
+    .footer-wrap{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:24px 0;flex-wrap:wrap}
+    .footer-left{display:flex;align-items:center;gap:12px}
+    .footer-left img{width:52px;height:52px;border-radius:16px}
+    .footer-links{display:flex;gap:16px;flex-wrap:wrap}
+    .footer-links a{color:#203046;font-weight:800}
+
+    .reveal{opacity:0;transform:translateY(50px) scale(.96);transition:opacity .9s ease, transform .9s ease}
+    .reveal.show{opacity:1;transform:translateY(0) scale(1)}
+
+    @keyframes spinSlow{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+    @keyframes orbFloat{0%,100%{transform:translateY(0) translateX(0)}50%{transform:translateY(-22px) translateX(12px)}}
+    @keyframes logoDance{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-4px) rotate(2deg)}75%{transform:translateY(3px) rotate(-2deg)}}
+    @keyframes badgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+    @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    @keyframes popIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes phoneFloat1{0%,100%{transform:rotate(6deg) translateY(0)}50%{transform:rotate(4deg) translateY(-16px)}}
+    @keyframes phoneFloat2{0%,100%{transform:rotate(-7deg) translateY(0)}50%{transform:rotate(-4deg) translateY(-18px)}}
+    @keyframes screenShine{0%{left:-120%}45%,100%{left:145%}}
+    @keyframes barGrow{0%,100%{width:58%}50%{width:88%}}
+    @keyframes floatButton{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+    @media (max-width: 980px){
+      .hero-wrap,.download-wrap,.about,.difference-grid{grid-template-columns:1fr}
+      .grid,.impact-strip,.audience-grid,.faq-grid{grid-template-columns:repeat(2,1fr)}
+      .screens{grid-template-columns:1fr}
+      .steps{grid-template-columns:1fr}
+      .hero h1{font-size:44px}
+      .section h2,.download-wrap h2,.final-cta h2{font-size:34px}
+      .nav{display:none}
+      .phone-stack{height:auto;display:grid;gap:16px}
+      .phone{position:relative;left:auto;right:auto;top:auto;bottom:auto;transform:none !important;max-width:100%;width:100%}
+      .phone-screen{min-height:auto}
+    }
+    @media (max-width: 640px){
+      .grid,.impact-strip,.audience-grid,.faq-grid{grid-template-columns:1fr}
+      .hero{padding:56px 0 38px}
+      .hero h1{font-size:36px}
+      .hero p{font-size:17px}
+      .logo img{width:56px;height:56px}
+      .download-wrap{padding:30px}
+      .section{padding:62px 0}
+      .hero-points span{font-size:13px}
+      .section h2,.final-cta h2{font-size:34px}
+      .floating-cta{left:14px;right:14px;justify-content:center}
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-lines"></div>
+  <div class="bg-dots"></div>
+  <div class="bg-orbs">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+    <div class="orb four"></div>
+  </div>
+
+  <a class="floating-cta" href="https://github.com/petrescuebrazil/petnet-site/releases/download/v1.0/app-release.apk">⬇ Baixar o app</a>
+
+  <div class="topbar">
+    <div class="container">
+      <div class="header">
+        <div class="logo">
+          <img src="logo.png" alt="PetNet" />
+          <div class="logo-text">
+            <strong>PetNet</strong>
+            <span>Comunidade, adoção e apoio animal</span>
+          </div>
+        </div>
+
+        <div class="nav">
+          <a href="#beneficios">Benefícios</a>
+          <a href="#impacto">Impacto</a>
+          <a href="#telas">Telas do app</a>
+          <a href="#diferenca">Diferenciais</a>
+          <a href="#download" class="btn">Baixar APK</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="hero">
+    <div class="container">
+      <div class="hero-wrap">
+        <div class="reveal show">
+          <div class="hero-badge">🚀 O app que transforma visibilidade em ação real</div>
+          <h1>
+            Pets precisam ser vistos.
+            <span class="gradient-text">O PetNet faz isso acontecer.</span>
+          </h1>
+          <p>
+            Todos os dias, milhares de animais precisam de ajuda — mas não têm alcance.
+            O PetNet foi criado para mudar isso.
+            Aqui, cada post pode gerar adoção, apoio, mobilização ou até salvar uma vida.
+          </p>
+
+          <div class="hero-actions">
+            <a href="https://github.com/petrescuebrazil/petnet-site/releases/download/v1.0/app-release.apk" class="btn">🔥 Baixar agora</a>
+            <a href="#telas" class="btn btn-light">👀 Ver o app</a>
+            <a href="#como-funciona" class="btn btn-outline">⚡ Como funciona</a>
+          </div>
+
+          <div class="hero-points">
+            <span>⚡ Mais alcance</span>
+            <span>🐾 Mais adoções</span>
+            <span>💰 Mais apoio</span>
+            <span>📢 Mais visibilidade</span>
+            <span>💚 Mais impacto real</span>
+          </div>
+        </div>
+
+        <div class="phone-stack reveal show">
+          <div class="phone one">
+            <div class="phone-screen">
+              <div class="mini-card">
+                <h3>Este pet precisa de ajuda 🐶</h3>
+                <p style="font-size:14px;color:rgba(255,255,255,.75)">
+                  No PetNet, ele pode ser visto por muito mais pessoas.
+                </p>
+                <div class="bar"><span></span></div>
+              </div>
+              <div class="mini-grid">
+                <div class="mini-stat">
+                  <strong>+Alcance</strong>
+                  <span>Post viraliza</span>
+                </div>
+                <div class="mini-stat">
+                  <strong>+Chance</strong>
+                  <span>De adoção</span>
+                </div>
+              </div>
+              <div class="mini-card" style="margin-top:14px;">
+                <h4 style="margin-bottom:8px;">Comunidade em movimento</h4>
+                <p style="font-size:14px;color:rgba(255,255,255,.75)">Fotos, vídeos, campanhas, perfis e histórias reunidos em um só lugar.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="phone two">
+            <div class="phone-screen">
+              <div class="bubble a"></div>
+              <div class="mini-card">
+                <h4>Campanha urgente</h4>
+                <p style="font-size:14px;color:rgba(255,255,255,.75)">
+                  Tratamentos, resgates e emergências ganham visibilidade.
+                </p>
+              </div>
+              <div class="mini-card">
+                <h4>Comunidade ativa</h4>
+                <p style="font-size:14px;color:rgba(255,255,255,.75)">
+                  Pessoas prontas para ajudar, compartilhar e apoiar.
+                </p>
+              </div>
+              <div class="mini-card">
+                <h4>Mais do que postagem</h4>
+                <p style="font-size:14px;color:rgba(255,255,255,.75)">
+                  O objetivo é transformar visibilidade em ação real para os animais.
+                </p>
+              </div>
+              <div class="bubble b"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section reveal" id="impacto">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-tag">Impacto em destaque</div>
+        <h2>Quando mais pessoas veem, mais pets têm chance.</h2>
+        <p class="lead">Use estes números como prova visual forte. Depois você pode trocar pelos números reais do app quando quiser.</p>
+      </div>
+
+      <div class="impact-strip">
+        <div class="impact-box">
+          <strong>+1.200</strong>
+          <span>pets impactados</span>
+        </div>
+        <div class="impact-box">
+          <strong>+3.500</strong>
+          <span>usuários na rede</span>
+        </div>
+        <div class="impact-box">
+          <strong>+10 mil</strong>
+          <span>interações e visualizações</span>
+        </div>
+        <div class="impact-box">
+          <strong>24/7</strong>
+          <span>visibilidade para causas importantes</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section reveal" id="beneficios">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-tag">Por que usar o PetNet</div>
+        <h2>Se você quer ajudar pets, você precisa de alcance.</h2>
+        <p class="lead">Não adianta postar e ninguém ver. O PetNet foi feito para amplificar o que importa.</p>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div class="card-icon">📢</div>
+          <h3>Posts que alcançam</h3>
+          <p>Seu conteúdo não fica escondido. Ele chega em pessoas que realmente se importam com pets.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🐶</div>
+          <h3>Aumente adoções</h3>
+          <p>Mais pessoas vendo = mais chances reais de encontrar um lar para um animal.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">💚</div>
+          <h3>Ajuda que acontece</h3>
+          <p>Campanhas deixam de ser ignoradas e passam a receber atenção e apoio.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h3>Impacto imediato</h3>
+          <p>Você publica hoje e já começa a gerar resultado real dentro da comunidade.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section reveal" id="como-funciona">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-tag">Como funciona</div>
+        <h2>Direto, simples e com foco em conversão.</h2>
+        <p class="lead">A proposta é fazer a pessoa bater o olho, entender o valor do PetNet e baixar o app em poucos segundos.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Baixe o app</h3>
+          <p>O botão principal leva direto para o APK oficial hospedado no seu release do GitHub.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>Entre no PetNet</h3>
+          <p>Depois da instalação, a pessoa pode criar perfil, navegar, publicar e começar a se conectar com a comunidade.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Divulgue e ajude</h3>
+          <p>Use o app para ampliar adoções, campanhas, perfis e conteúdos que realmente precisam ser vistos.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section reveal">
+    <div class="container">
+      <div class="story-banner">
+        <h2>Um post pode mudar uma vida.</h2>
+        <p>
+          Um animal encontrado, uma campanha urgente, uma adoção que precisa acontecer, um tratamento que precisa de apoio.
+          O PetNet existe para transformar esse tipo de conteúdo em algo impossível de ignorar.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section reveal" id="telas">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-tag">Telas do app</div>
+        <h2>Uma área viva, premium e pronta para convencer.</h2>
+        <p class="lead">As molduras, brilhos e movimentos deixam os prints com muito mais presença visual e cara de produto real.</p>
+      </div>
+
+      <div class="screens">
+        <div class="screen-card">
+          <div class="screen-frame">
+            <img src="tela-feed.png" alt="Tela principal do PetNet" />
+          </div>
+          <h3>Feed e comunidade</h3>
+          <p>Mostre a timeline do app com fotos, vídeos, interações e o visual da comunidade em movimento.</p>
+        </div>
+
+        <div class="screen-card">
+          <div class="screen-frame">
+            <img src="tela-adocao.png" alt="Tela de adoção do PetNet" />
+          </div>
+          <h3>Adoção e visibilidade</h3>
+          <p>Apresente a força do PetNet para divulgar pets e conectar pessoas que querem adotar ou ajudar.</p>
+        </div>
+
+        <div class="screen-card">
+          <div class="screen-frame">
+            <img src="tela-vaquinha.png" alt="Tela de vaquinha do PetNet" />
+          </div>
+          <h3>Vaquinhas e apoio</h3>
+          <p>Reforce o lado social do app mostrando campanhas, arrecadações e pedidos de ajuda dentro da plataforma.</p>
+        </div>
+      </div>
+
+      <div class="screen-note">
+        <strong>IMPORTANTE:</strong> para essas telas aparecerem, coloque na mesma pasta do <strong>index.html</strong> os arquivos <strong>tela-feed.png</strong>, <strong>tela-adocao.png</strong> e <strong>tela-vaquinha.png</strong>.
+      </div>
+    </div>
+  </section>
+
+  <section class="section reveal">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-tag">Para quem é</div>
+        <h2>O PetNet foi feito para quem quer gerar impacto de verdade.</h2>
+        <p class="lead">A plataforma conversa com pessoas diferentes, mas todas têm algo em comum: querem ajudar pets com mais força e mais alcance.</p>
+      </div>
+
+      <div class="audience-grid">
+        <div class="audience-card">
+          <h3>🐾 Protetores</h3>
+          <p>Dê mais visibilidade para resgates, pedidos urgentes, adoções e campanhas que precisam alcançar pessoas rápido.</p>
+        </div>
+        <div class="audience-card">
+          <h3>🏡 ONGs e projetos</h3>
+          <p>Use o app para fortalecer comunicação, comunidade, mobilização e presença digital em torno da causa animal.</p>
+        </div>
+        <div class="audience-card">
+          <h3>🐶 Tutores</h3>
+          <p>Compartilhe seu pet, participe da comunidade, acompanhe conteúdos relevantes e faça parte de uma rede ativa.</p>
+        </div>
+        <div class="audience-card">
+          <h3>💚 Apoiadores</h3>
+          <p>Descubra campanhas, pets e histórias que precisam de ajuda e transforme interesse em ação concreta.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section reveal" id="diferenca">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-tag">Por que o PetNet é diferente</div>
+        <h2>Não é só uma rede social. É uma rede de mobilização.</h2>
+        <p class="lead">O PetNet foi pensado para unir comunidade, visibilidade e ação em um único produto.</p>
+      </div>
+
+      <div class="difference-grid">
+        <div class="difference-box">
+          <h3>O que o PetNet entrega</h3>
+          <ul>
+            <li>Mais alcance para adoções e campanhas</li>
+            <li>Comunidade reunida em torno do universo pet</li>
+            <li>Conteúdo visual com fotos, vídeos e histórias</li>
+            <li>Espaço para perfis, vaquinhas e divulgação</li>
+            <li>Um caminho simples para gerar impacto real</li>
+          </ul>
+        </div>
+        <div class="difference-box">
+          <h3>Por que isso importa</h3>
+          <ul>
+            <li>Porque muitos pets precisam de ajuda e não têm visibilidade</li>
+            <li>Porque campanhas urgentes não podem depender de alcance aleatório</li>
+            <li>Porque a causa animal precisa de produto, não só boa intenção</li>
+            <li>Porque comunidade forte acelera adoção, apoio e mobilização</li>
+            <li>Porque um post visto pela pessoa certa pode mudar tudo</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section reveal" id="sobre">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-tag">Sobre o PetNet</div>
+        <h2>Um app criado para dar mais alcance à causa animal.</h2>
+        <p class="lead">O PetNet reúne comunidade, divulgação, vaquinhas, adoção e perfis em uma experiência mais forte, visual e conectada.</p>
+      </div>
+
+      <div class="about">
+        <div class="about-box">
+          <h3>O que dá para fazer no app</h3>
+          <ul>
+            <li>Compartilhar fotos, vídeos e histórias de pets</li>
+            <li>Divulgar adoções</li>
+            <li>Apoiar e divulgar vaquinhas</li>
+            <li>Participar de uma comunidade voltada ao universo pet</li>
+            <li>Criar perfil e acompanhar conexões dentro da plataforma</li>
+          </ul>
+        </div>
+        <div class="about-box">
+          <h3>Por que essa página vende melhor</h3>
+          <p>Ela posiciona o PetNet como produto real, com branding forte, mensagem clara e foco em ação.</p>
+          <p>O visitante entende rápido o problema, enxerga a solução e encontra múltiplos pontos para baixar o app.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section reveal">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-tag">Perguntas rápidas</div>
+        <h2>Sem fricção. Sem enrolação.</h2>
+        <p class="lead">As respostas mais importantes para quem está pensando em entrar no PetNet agora.</p>
+      </div>
+
+      <div class="faq-grid">
+        <div class="faq-card">
+          <h3>É gratuito?</h3>
+          <p>Sim. O PetNet pode ser baixado e usado gratuitamente.</p>
+        </div>
+        <div class="faq-card">
+          <h3>Funciona em Android?</h3>
+          <p>Sim. O download atual é feito por APK direto para Android.</p>
+        </div>
+        <div class="faq-card">
+          <h3>Precisa de cadastro?</h3>
+          <p>Sim, para publicar, interagir e participar da comunidade de forma completa.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section reveal" id="download">
+    <div class="container">
+      <div class="download-wrap">
+        <div>
+          <div class="section-tag" style="color:#72f0c0;">Download oficial</div>
+          <h2>Baixe agora e comece a gerar impacto.</h2>
+          <p>
+            Quanto mais pessoas no PetNet, mais pets são ajudados.
+            Instale agora e faça parte dessa rede.
+          </p>
+        </div>
+
+        <div class="download-card">
+          <div class="download-card-top">
+            <img src="logo.png" alt="PetNet" />
+            <div>
+              <strong style="display:block;font-size:22px;">PetNet APK</strong>
+              <span style="color:#64748b;font-size:14px;">Download direto</span>
+            </div>
+          </div>
+
+          <a href="https://github.com/petrescuebrazil/petnet-site/releases/download/v1.0/app-release.apk" class="btn btn-dark" style="width:100%;text-align:center;">🚀 Instalar agora</a>
+
+          <div class="download-link">
+            Link direto:<br>
+            https://github.com/petrescuebrazil/petnet-site/releases/download/v1.0/app-release.apk
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section reveal">
+    <div class="container">
+      <div class="final-cta">
+        <h2>Se você chegou até aqui, já entendeu.</h2>
+        <p>
+          Pets precisam de visibilidade. Campanhas precisam de alcance. A causa animal precisa de comunidade ativa.
+          O próximo passo agora não é pensar mais. É entrar.
+        </p>
+        <a href="https://github.com/petrescuebrazil/petnet-site/releases/download/v1.0/app-release.apk" class="btn">🔥 Baixar o PetNet agora</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-wrap">
+        <div class="footer-left">
+          <img src="logo.png" alt="PetNet" />
+          <div>
+            <strong>PetNet</strong><br>
+            <span style="color:#64748b;font-size:14px;">Conectando pessoas e pets com mais visibilidade e propósito.</span>
+          </div>
+        </div>
+
+        <div class="footer-links">
+          <a href="#beneficios">Benefícios</a>
+          <a href="#impacto">Impacto</a>
+          <a href="#telas">Telas</a>
+          <a href="#download">Download</a>
+          <a href="https://petrescuebrazil.github.io/petnet-privacy-policy/">Política de Privacidade</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) entry.target.classList.add('show');
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+  </script>
+</body>
+</html>
